@@ -1,0 +1,24 @@
+__pycache__/
+*.pyc
+*.pyo
+*.egg-info/
+.DS_Store
+
+# venv / pyenv
+.venv/
+venv/
+.python-version
+
+# Local config / secrets
+.env
+.env.local
+config.local.*
+
+# IDE
+.idea/
+.vscode/
+.claude/settings.local.json
+
+# Runtime
+*.log
+runs/

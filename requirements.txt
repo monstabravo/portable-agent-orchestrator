@@ -1,0 +1,6 @@
+# Core (no API client required for the mock backend)
+
+# Optional: install only the providers you actually use.
+# anthropic>=0.39.0
+# openai>=1.50.0
+# google-generativeai>=0.8.0

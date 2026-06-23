@@ -28,18 +28,18 @@ for r in results:
 # search_customers {'query': 'acme', 'limit': 3, 'include_archived': False} -> [...]
 ```
 
-整個 API 就是這麼簡潔。一個 decorator、一個 `run()` 就搞定。必填參數、預設值乃至 JSON-Schema 型別，全都會從 function signature 自動推導 —— 你完全不需要手寫 tool spec。回傳的結果是普通的 dataclass，可以直接拿到 app 中的其他地方繼續使用。
+整個 API 就是這麼簡潔。一個 decorator、一個 `run()` 就搞定。必填參數、預設值乃至 JSON-Schema 型別，全都會從 function signature 自動推導 —— 你完全不需要手寫 tool spec。回傳的結果是普通的 dataclass，可以直接在應用程式的其他地方繼續使用。
 
 ## 為什麼有這個專案
 
 你手邊已經有一堆能正常運作的內部腳本 —— 像是 Playwright 機器人、REST client 或 CSV 處理器。現在你想在這些腳本之上，加一個自然語言的操作入口。然而，你讀到的每一篇「agent 框架」教學，都預設你願意接受以下這些條件：
 
 - 為了專案拉進 **80 個以上的間接依賴**（如 LangChain、LlamaIndex）
-- 為了根本用不到的檢索功能，特地 **架設一個向量資料庫**
+- 為了根本用不到的檢索功能，特地 **部署一個向量資料庫**
 - 將自己 **綁死在某一家 LLM SDK** 上，日後想替換就得整個重寫
 - 部署一個 **長期運行的服務**，即使其實一個 script 就綽綽有餘
 
-這個專案採取的是完全相反的取捨：**它就是一個檔案，丟進你的專案資料夾裡就能用**。它甚至能運行在那些連 `pip install` 一個 500MB 依賴樹都不可能的鎖定環境中（例如 kiosk、操作員桌面或 air-gap 網路），而且完全不預設你明天是否還想繼續用同一家模型。
+這個專案採取的是完全相反的取捨：**它就是一個檔案，丟進你的專案資料夾裡就能用**。它甚至能運行在那些連 `pip install` 一個 500MB 相依套件都不可能的封閉環境中（例如 kiosk、操作員電腦或實體隔離網路 air-gap），而且完全不預設你明天是否還想繼續用同一家模型。
 
 ## 對比表
 
@@ -48,7 +48,7 @@ for r in results:
 | 核心程式碼行數 | **~200** | 100,000+ | 80,000+ |
 | 執行期必要依賴 | **0** | 30+ | 25+ |
 | 安裝體積 | **~10 KB**（單一 .py 檔） | 數百 MB | 數百 MB |
-| 冷啟動 import 時間 | **<10 ms**（沒有 import 瀑布） | 數秒（在慢碟上更慘） | 數秒（在慢碟上更慘） |
+| 冷啟動 import 時間 | **<10 ms**（沒有連鎖 import 效應） | 數秒（在慢速硬碟上更慘） | 數秒（在慢速硬碟上更慘） |
 | 替換 LLM provider | **一個 60 行的 subclass** | 更換 import + wrapper + schema | 更換 import + wrapper + schema |
 | 單一 hook 完成全稽核 | ✅ `on_call=...` | callback 散落各處 | callback 散落各處 |
 | 一個下午即可讀完原始碼 | ✅ | ❌ | ❌ |
@@ -75,7 +75,7 @@ User input: add(a=3, b=5); echo(text='hello'); list_files(directory='.')
 
 ## 換上任何一家 LLM
 
-provider 的實作只需要一個 method，完成它就大功告成了。
+模型供應商（provider）的實作只需要一個 method，完成它就大功告成了。
 
 ```python
 class MyBackend(LLMBackend):
@@ -84,7 +84,7 @@ class MyBackend(LLMBackend):
         ...
 ```
 
-專案內建一個可直接使用的 `AnthropicBackend`（60 行）作為參考實作。**唯有當你實際用到它時**，才需要執行 `pip install anthropic` —— 核心的 orchestrator 與 `MockBackend` 始終維持零依賴。同樣的寫法也能輕鬆套用到 OpenAI、Gemini、vLLM、llama.cpp 或你自家的 fine-tune 模型上。
+專案內建一個可直接使用的 `AnthropicBackend`（60 行）作為參考實作。**唯有當你實際用到它時**，才需要執行 `pip install anthropic` —— 核心的 orchestrator 與 `MockBackend` 始終維持零依賴。同樣的寫法也能輕鬆套用到 OpenAI、Gemini、vLLM、llama.cpp 或你自家的微調（fine-tuned）模型上。
 
 ## 結果是拿來用的，不只是印出來
 
@@ -98,7 +98,7 @@ for r in results:
         log.warning("tool %s failed: %s", r.tool, r.error)
         continue
     metrics.timing(f"agent.{r.tool}.ms", r.duration_ms)
-    pipeline.push(r.output)            # 直接餵進你 app 的其他地方
+    pipeline.push(r.output)            # 直接傳遞至應用程式的其他地方
 ```
 
 它就是一個普通的 dataclass，包含：`tool`、`arguments`、`output`、`error`、`duration_ms` 與 `call_id`。沒有多餘的 wrapper 物件、沒有需要 drain 的 async iterator，也沒有需要你記得註冊的 callback。
@@ -159,7 +159,7 @@ portable-agent-orchestrator/
 
 ## 常見問題
 
-**這個能上 production 嗎？** 核心非常精簡，你大可一次坐下來把它讀完，再自行決定。CI 在每次 push 時都會執行 demo。專案中沒有任何隱藏狀態、背景 thread 或全域 registry。
+**這個能上 production 嗎？** 核心非常精簡，你大可花點時間一氣呵成讀完，再自行決定。CI 在每次 push 時都會執行 demo。專案中沒有任何隱藏狀態、背景 thread 或全域 registry。
 
 **那我直接用某家 provider 的 tool-calling API 不就好了？** 當然可以。這一層的作用只是將其包裝起來，讓「替換 provider」、「測試時 mock」與「稽核每一次呼叫」這三件事，各自都只需要一行程式碼就能搞定。
 

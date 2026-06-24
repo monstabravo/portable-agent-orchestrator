@@ -46,7 +46,7 @@ for r in results:
 | | **portable-agent-orchestrator** | LangChain agents | LlamaIndex agents |
 |---|---|---|---|
 | 核心程式碼行數 | **~200** | 100,000+ | 80,000+ |
-| 執行期必要依賴 | **0** | 30+ | 25+ |
+| 執行期必要依賴 | **0** | 30+ 個套件 | 25+ 個套件 |
 | 安裝體積 | **~10 KB**（單一 .py 檔） | 數百 MB | 數百 MB |
 | 冷啟動 import 時間 | **<10 ms**（沒有連鎖 import 效應） | 數秒（在慢速硬碟上更慘） | 數秒（在慢速硬碟上更慘） |
 | 替換 LLM provider | **一個 60 行的 subclass** | 更換 import + wrapper + schema | 更換 import + wrapper + schema |

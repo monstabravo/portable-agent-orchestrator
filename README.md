@@ -46,7 +46,7 @@ This project is the opposite trade-off. It's a single file you drop into a proje
 | | **portable-agent-orchestrator** | LangChain agents | LlamaIndex agents |
 |---|---|---|---|
 | Lines of core code | **~200** | 100,000+ | 80,000+ |
-| Required runtime deps | **0** | 30+ | 25+ |
+| Required runtime deps | **0** | 30+ packages | 25+ packages |
 | Install footprint | **~10 KB** (one .py file) | 100s of MB | 100s of MB |
 | Cold-start import time | **<10 ms** (no import waterfall) | seconds, on slow disks | seconds, on slow disks |
 | Swap LLM provider | **one 60-line subclass** | new imports + wrappers + schemas | new imports + wrappers + schemas |
